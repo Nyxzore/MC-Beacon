@@ -44,7 +44,8 @@ def calculateBeamColor(glassBlocks):
         term = multiply_RGB_Vector(glassBlocks[i], 2**(i-1))
         summed_Vector = add_RGB_Vectors(summed_Vector, term) 
 
-    new_Color = multiply_RGB_Vector(add_RGB_Vectors(glassBlocks[0] , summed_Vector), (1/(2**(n+1))))
+    colorSum = add_RGB_Vectors(glassBlocks[0] , summed_Vector)
+    new_Color = multiply_RGB_Vector(colorSum, (1/(2**(n-1))))
     return round_RGB_Vector(new_Color)
 
 def IndexToRGB(Indx):
@@ -70,7 +71,7 @@ def percentage_Match(desired_Color, current_Color):
     ave_error = sum(error)/3
     return (1 - ave_error)
 
-def ComputeAllColoursOfOrder(n, desired_Color):
+def ComputeAllColoursOfOrder(n):
     initColorOrder = [0,]*n
     OrderList = [(initColorOrder)]
     NewOrder = None
@@ -79,32 +80,95 @@ def ComputeAllColoursOfOrder(n, desired_Color):
         OrderList.append(NewOrder)
     
     #converts the list from indexes to RGB
-    percentage_Match_List = []
     for i in range(len(OrderList)):
         for j in range(len(OrderList[0])):
             currentIndx = OrderList[i][j]
             OrderList[i][j] = IndexToRGB(currentIndx)
-        #calculating percentages in this loop to save on computation
-        beamColor = calculateBeamColor(OrderList[i])
-        OrderList[i] = beamColor
-        percentage_Match_List.append(percentage_Match(desired_Color, beamColor))
-    return OrderList, percentage_Match_List
+    return OrderList
 
-with open('output.txt', 'w') as file:
-    OrderList, percentage_Match_List = ComputeAllColoursOfOrder(3, (58, 90, 64))
-    for item in OrderList:
-        file.write(f"{item}\n")
+def calcBeamColorAndMatch(OrderList, desired_Color):
+    beam_Colors = []
+    percentage_Match_List = []
+    for order in OrderList:
+        newColor = calculateBeamColor(order)
+        beam_Colors.append(newColor)
 
-    print(max(percentage_Match_List))
-    maxInx = percentage_Match_List.index(max(percentage_Match_List))
-    bestOrderRGB = OrderList[maxInx]
+        p = percentage_Match(desired_Color, newColor)
+        percentage_Match_List.append(p)
 
-# Convert each tuple to its corresponding color name
+    return beam_Colors, percentage_Match_List
 
-print(calculateBeamColor(((94, 124, 22), (22, 156, 156), (137, 50, 184))))
-
-print("List saved to output.txt")
-print(max)
 #resources
 #https://minecraft.fandom.com/wiki/Dye#Dyeing_armor
 #https://www.checkyourmath.com/convert/color/decimal_rgb.php
+
+#gui
+import customtkinter as ctk
+from tkinter import colorchooser
+
+root = ctk.CTk()
+root.geometry("300x400")
+root.title("Beacon Color Picker")
+
+#hexadecimal
+lblRed = ctk.CTkLabel(master=root, text="Hex Color")
+lblRed.pack(pady = 10)
+entPickColor = ctk.CTkEntry(master=root)
+entPickColor.pack()
+
+
+class HexColorToRGB():
+    def HextoDecimal(HexCode):
+        hex_Dict = {
+            "0":0,
+            "1":1,
+            "2":2,
+            "3":3,
+            "4":4,
+            "5":5,
+            "6":6,
+            "7":7,
+            "8":8,
+            "9":9,
+            "A":10,
+            "B":11,
+            "C":12,
+            "D":13,
+            "E":14,
+            "F":15,
+        }
+        sum = 0
+        for i in range(-1, -len(HexCode)-1, -1):
+            sum += 16**(abs(i)-1) * hex_Dict[HexCode[i]]
+        return sum
+    
+    def Main(HexColor):
+        #RRGGBB
+        RGBVect = [0,0,0]
+        for i in range(1,4):
+            CurrentElement = HexColor[-2*i+1] +HexColor[-2*i]
+            RGBValue = HexColorToRGB.HextoDecimal(CurrentElement)
+            RGBVect[-i] = RGBValue
+        return RGBVect
+
+def FindGlassBlocks():
+    desired_color_hex = entPickColor.get()[1:]
+    desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
+    
+    OrderList = ComputeAllColoursOfOrder(1)
+    colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
+
+    maxMatch = max(percentageMatchList)
+    maxIndex = percentageMatchList.index(maxMatch)
+
+    #convert orderlist to names so its readable
+    bestOrder = OrderList[maxIndex]
+    for i in range(len(bestOrder)):
+        bestOrder[i] = rgbToColour[bestOrder[i]]
+
+    print(bestOrder, maxMatch)
+
+btnCalc = ctk.CTkButton(master=root, text="Calculate", command=FindGlassBlocks)
+btnCalc.pack(pady=10)
+
+root.mainloop()
