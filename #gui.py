@@ -79,10 +79,9 @@ def on_leave(event):
 
 #adding beacon png
 
-order = ('red','red','red','red','red','red')
+order = ('red','blue','green','red','blue')
 n = len(order)
-img_length = 6*(n**2) -70*n +262
-print(img_length)
+img_length = 64
 beacon_img = Image.open("beacon.png")
 beacon_img = beacon_img.resize((img_length,img_length))
 beacon_img = ImageTk.PhotoImage(beacon_img)

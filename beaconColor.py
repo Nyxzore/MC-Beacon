@@ -155,7 +155,8 @@ class HexColorToRGB():
 def FindGlassBlocks():
     desired_color_hex = entPickColor.get()[1:]
     desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
-    OrderList = ComputeAllColoursOfOrder(4)
+    desired_rgb_color = (29, 56, 32)
+    OrderList = ComputeAllColoursOfOrder(6)
     colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, (desired_rgb_color))
 
     maxMatch = max(percentageMatchList)
