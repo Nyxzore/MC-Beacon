@@ -1,5 +1,6 @@
-#reference to all the rgb vectors available in mc
+
 colourToRGB = {
+    #reference to all the rgb vectors available in mc
     "white" : (249, 255, 254),
     "light_Gray" : (157, 157, 151),
     "gray" : (71, 79, 82),
@@ -104,7 +105,8 @@ def calcBeamColorAndMatch(OrderList, desired_Color):
 
 #gui
 import customtkinter as ctk
-from tkinter import colorchooser
+import tkinter as tk
+from PIL import Image
 
 root = ctk.CTk()
 root.geometry("300x400")
@@ -115,7 +117,6 @@ lblRed = ctk.CTkLabel(master=root, text="Hex Color")
 lblRed.pack(pady = 10)
 entPickColor = ctk.CTkEntry(master=root)
 entPickColor.pack()
-
 
 class HexColorToRGB():
     def HextoDecimal(HexCode):
@@ -154,9 +155,8 @@ class HexColorToRGB():
 def FindGlassBlocks():
     desired_color_hex = entPickColor.get()[1:]
     desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
-    
-    OrderList = ComputeAllColoursOfOrder(1)
-    colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
+    OrderList = ComputeAllColoursOfOrder(4)
+    colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, (desired_rgb_color))
 
     maxMatch = max(percentageMatchList)
     maxIndex = percentageMatchList.index(maxMatch)
@@ -171,4 +171,12 @@ def FindGlassBlocks():
 btnCalc = ctk.CTkButton(master=root, text="Calculate", command=FindGlassBlocks)
 btnCalc.pack(pady=10)
 
+#adding beacon png
+
+beacon_img = ctk.CTkImage(light_image=Image.open("beacon.png"), dark_image=Image.open("beacon.png"), size=((64,64)))
+beacon_lbl = ctk.CTkLabel(root, text="", image=beacon_img)
+beacon_lbl.pack(side="bottom")
 root.mainloop()
+
+#https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/25/Beacon_JE6_BE2.png/revision/latest?cb=20241106154445
+#https://www.youtube.com/watch?v=GMHtpH68Glo
