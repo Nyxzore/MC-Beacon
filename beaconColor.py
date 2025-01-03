@@ -1,3 +1,5 @@
+import pandas as pd
+import os
 
 colourToRGB = {
     #reference to all the rgb vectors available in mc
@@ -99,14 +101,10 @@ def calcBeamColorAndMatch(OrderList, desired_Color):
 
     return beam_Colors, percentage_Match_List
 
-#resources
-#https://minecraft.fandom.com/wiki/Dye#Dyeing_armor
-#https://www.checkyourmath.com/convert/color/decimal_rgb.php
-
 #gui
 import customtkinter as ctk
 import tkinter as tk
-from PIL import Image
+from PIL import Image, ImageTk
 
 root = ctk.CTk()
 root.geometry("300x400")
@@ -120,23 +118,12 @@ entPickColor.pack()
 
 class HexColorToRGB():
     def HextoDecimal(HexCode):
+        HexCode = HexCode.strip("#")
         hex_Dict = {
-            "0":0,
-            "1":1,
-            "2":2,
-            "3":3,
-            "4":4,
-            "5":5,
-            "6":6,
-            "7":7,
-            "8":8,
-            "9":9,
-            "A":10,
-            "B":11,
-            "C":12,
-            "D":13,
-            "E":14,
-            "F":15,
+            "0":0,"1":1,"2":2,"3":3,"4":4,
+            "5":5,"6":6,"7":7,"8":8,"9":9,
+            "A":10,"B":11,"C":12,"D":13,"E":14,"F":15,
+            "a":10,"b":11,"c":12,"d":13,"e":14,"f":15,
         }
         sum = 0
         for i in range(-1, -len(HexCode)-1, -1):
@@ -147,37 +134,117 @@ class HexColorToRGB():
         #RRGGBB
         RGBVect = [0,0,0]
         for i in range(1,4):
-            CurrentElement = HexColor[-2*i+1] +HexColor[-2*i]
+            CurrentElement = HexColor[-2*i] + HexColor[-2*i+1]
             RGBValue = HexColorToRGB.HextoDecimal(CurrentElement)
             RGBVect[-i] = RGBValue
         return RGBVect
 
-def FindGlassBlocks():
-    desired_color_hex = entPickColor.get()[1:]
+#sliders label
+lblSlider = ctk.CTkLabel(root, text="Glass Blocks: 1")
+lblSlider.pack(pady=5)
+
+numGlassBlocksWanted = 1
+def on_slide(value):
+    global numGlassBlocksWanted
+    numGlassBlocksWanted = round(value)
+    lblSlider.configure(text="Glass Blocks: " + str(numGlassBlocksWanted))
+
+slider = ctk.CTkSlider(root, from_=1, to=10, command=on_slide)
+slider.pack(pady=5)
+slider.set(1)
+
+def FindGlassBlocks(n):
+    desired_color_hex = entPickColor.get()
     desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
-    desired_rgb_color = (29, 56, 32)
-    OrderList = ComputeAllColoursOfOrder(6)
-    colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, (desired_rgb_color))
 
-    maxMatch = max(percentageMatchList)
-    maxIndex = percentageMatchList.index(maxMatch)
+    #check if list is precomputed
+    if os.path.exists("colours_produced_with_"+str(n)+"_glassblocks"):
+        #read from there
+        return None
+    
+    else:#calculate orders, colors
+        OrderList = ComputeAllColoursOfOrder(n)
+        colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
 
+        maxMatch = max(percentageMatchList)
+        maxIndex = percentageMatchList.index(maxMatch)
+
+        bestOrder = OrderList[maxIndex]
+        for i in range(len(bestOrder)):
+            bestOrder[i] = rgbToColour[bestOrder[i]]
+
+        #write to order and color list to csv file
+        data = {
+            "color" : colorList,
+            "order" : OrderList
+            }
+        df = pd.DataFrame(data)
+        df.to_csv("colours_produced_with_"+str(n)+"_glassblocks.csv", index=False)
     #convert orderlist to names so its readable
-    bestOrder = OrderList[maxIndex]
-    for i in range(len(bestOrder)):
-        bestOrder[i] = rgbToColour[bestOrder[i]]
+    
 
-    print(bestOrder, maxMatch)
+    return bestOrder, maxMatch
+def on_btnCalc_click(n):
+    bestOrder, maxMatch = FindGlassBlocks(n)
+    DisplayBeaconWithColors(bestOrder)
 
-btnCalc = ctk.CTkButton(master=root, text="Calculate", command=FindGlassBlocks)
+btnCalc = ctk.CTkButton(master=root, text="Calculate", command= lambda: on_btnCalc_click(numGlassBlocksWanted))
 btnCalc.pack(pady=10)
 
-#adding beacon png
+def on_enter(event, name):
+    hover_label.configure(text=name)
+    hover_label.place(x=event.x_root - root.winfo_rootx() + 10, y=event.y_root - root.winfo_rooty() + 10)
 
-beacon_img = ctk.CTkImage(light_image=Image.open("beacon.png"), dark_image=Image.open("beacon.png"), size=((64,64)))
-beacon_lbl = ctk.CTkLabel(root, text="", image=beacon_img)
-beacon_lbl.pack(side="bottom")
+def on_leave(event):
+    hover_label.place_forget()
+
+root.canvas = ctk.CTkCanvas(root, width=150,height=210, bg=root.cget("bg"), highlightthickness=0) 
+root.canvas.pack()
+
+def DisplayBeaconWithColors(bestOrder):
+    #adding beacon png
+    root.canvas.delete("all")
+
+    order = bestOrder
+    n = len(order) + 1 #to include the beacon
+    h = int(root.canvas.cget("height"))
+    img_length = round(1.3 * (h/n))
+    beacon_img = Image.open("beacon.png")
+    beacon_img = beacon_img.resize((img_length,img_length))
+    beacon_img = ImageTk.PhotoImage(beacon_img)
+
+    
+    #place beacon img on canvas
+    beacon_height = h-img_length/2
+    beacon_item = root.canvas.create_image(80,beacon_height,image=beacon_img)
+    #beacon info
+    root.canvas.tag_bind(beacon_item, "<Enter>", lambda event: on_enter(event, "Beacon"))
+    root.canvas.tag_bind(beacon_item, "<Leave>", on_leave)
+
+
+    #hover event for beacon
+    global hover_label
+    hover_label = ctk.CTkLabel(root, text="", bg_color=root.cget("bg"), fg_color="black", corner_radius=5, padx=5, pady=5) 
+    hover_label.place_forget()
+
+    #stained glass blocks
+    y =beacon_height-(img_length/1.85)
+    glass_block_images =[]
+    for color in order:
+        glass_block_img = Image.open(f"glass_stained_blocks\{color}.png")
+        glass_block_img = glass_block_img.resize((img_length,img_length))
+        glass_block_img = ImageTk.PhotoImage(glass_block_img)
+        glass_block_images.append(glass_block_img)
+        #place glass img on canvas
+        glass_item = root.canvas.create_image(80,y,image=glass_block_img)
+        y -= img_length/1.85
+
+        root.canvas.tag_bind(glass_item, "<Enter>", lambda event, color=color: on_enter(event, f"{color.capitalize()} Glass Block"))
+        root.canvas.tag_bind(glass_item, "<Leave>", on_leave)
+
 root.mainloop()
 
 #https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/25/Beacon_JE6_BE2.png/revision/latest?cb=20241106154445
 #https://www.youtube.com/watch?v=GMHtpH68Glo
+#https://minecraft.fandom.com/wiki/Dye#Dyeing_armor
+#https://www.checkyourmath.com/convert/color/decimal_rgb.php
