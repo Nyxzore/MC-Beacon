@@ -184,45 +184,62 @@ root.canvas = ctk.CTkCanvas(root, width=150,height=210, bg=root.cget("bg"), high
 root.canvas.pack()
 
 def DisplayBeaconWithColors(bestOrder):
-    #adding beacon png
+    # Adding beacon png
     root.canvas.delete("all")
 
     order = bestOrder
-    n = len(order) + 1 #to include the beacon
+    n = len(order) + 1  # to include the beacon
     h = int(root.canvas.cget("height"))
-    img_length = round(1.3 * (h/n))
+    img_length = round(1.3 * (h / n))
     beacon_img = Image.open("beacon.png")
-    beacon_img = beacon_img.resize((img_length,img_length))
+    beacon_img = beacon_img.resize((img_length, img_length))
     beacon_img = ImageTk.PhotoImage(beacon_img)
 
-    
-    #place beacon img on canvas
-    beacon_height = h-img_length/2
-    beacon_item = root.canvas.create_image(80,beacon_height,image=beacon_img)
-    #beacon info
+    # Place beacon img on canvas
+    beacon_height = h - img_length / 2
+    beacon_item = root.canvas.create_image(80, beacon_height, image=beacon_img)
+    # Beacon info
     root.canvas.tag_bind(beacon_item, "<Enter>", lambda event: on_enter(event, "Beacon"))
     root.canvas.tag_bind(beacon_item, "<Leave>", on_leave)
 
-
-    #hover event for beacon
+    # Hover event for beacon
     global hover_label
-    hover_label = ctk.CTkLabel(root, text="", bg_color=root.cget("bg"), fg_color="black", corner_radius=5, padx=5, pady=5) 
+    hover_label = ctk.CTkLabel(root, text="", bg_color=root.cget("bg"), fg_color="black", corner_radius=5, padx=5, pady=5)
     hover_label.place_forget()
 
-    #stained glass blocks
-    y =beacon_height-(img_length/1.85)
-    glass_block_images =[]
+    # Stained glass blocks
+    y = beacon_height - (img_length / 1.85)
+    glass_block_images = []
+    glowing_glass_block_images = []
+
     for color in order:
-        glass_block_img = Image.open(f"glass_stained_blocks\{color}.png")
-        glass_block_img = glass_block_img.resize((img_length,img_length))
+        # Load regular glass block image
+        glass_block_img = Image.open(f"glass_stained_blocks/{color}.png")
+        glass_block_img = glass_block_img.resize((img_length, img_length))
         glass_block_img = ImageTk.PhotoImage(glass_block_img)
         glass_block_images.append(glass_block_img)
-        #place glass img on canvas
-        glass_item = root.canvas.create_image(80,y,image=glass_block_img)
-        y -= img_length/1.85
 
-        root.canvas.tag_bind(glass_item, "<Enter>", lambda event, color=color: on_enter(event, f"{color.capitalize()} Glass Block"))
-        root.canvas.tag_bind(glass_item, "<Leave>", on_leave)
+        # Load glowing glass block image
+        glowing_glass_block_img = Image.open(f"glass_stained_blocks/{color}_glow.png")
+        glowing_glass_block_img = glowing_glass_block_img.resize((img_length, img_length))
+        glowing_glass_block_img = ImageTk.PhotoImage(glowing_glass_block_img)
+        glowing_glass_block_images.append(glowing_glass_block_img)
+
+        # Place glass img on canvas
+        glass_item = root.canvas.create_image(80, y, image=glass_block_img)
+        y -= img_length / 1.85
+
+        # Bind hover events to switch between regular and glowing images
+        def on_enter_glass(event, color=color, glass_item=glass_item, index=len(glass_block_images) - 1):
+            root.canvas.itemconfig(glass_item, image=glowing_glass_block_images[index])
+            on_enter(event, f"{color.capitalize()} Glass Block")
+
+        def on_leave_glass(event, glass_item=glass_item, index=len(glass_block_images) - 1):
+            root.canvas.itemconfig(glass_item, image=glass_block_images[index])
+            on_leave(event)
+
+        root.canvas.tag_bind(glass_item, "<Enter>", on_enter_glass)
+        root.canvas.tag_bind(glass_item, "<Leave>", on_leave_glass)
 
 root.mainloop()
 
