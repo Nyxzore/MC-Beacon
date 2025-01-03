@@ -156,34 +156,19 @@ slider.set(1)
 def FindGlassBlocks(n):
     desired_color_hex = entPickColor.get()
     desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
-
-    #check if list is precomputed
-    if os.path.exists("colours_produced_with_"+str(n)+"_glassblocks"):
-        #read from there
-        return None
     
-    else:#calculate orders, colors
-        OrderList = ComputeAllColoursOfOrder(n)
-        colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
+    OrderList = ComputeAllColoursOfOrder(n)
+    colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
 
-        maxMatch = max(percentageMatchList)
-        maxIndex = percentageMatchList.index(maxMatch)
-
-        bestOrder = OrderList[maxIndex]
-        for i in range(len(bestOrder)):
-            bestOrder[i] = rgbToColour[bestOrder[i]]
-
-        #write to order and color list to csv file
-        data = {
-            "color" : colorList,
-            "order" : OrderList
-            }
-        df = pd.DataFrame(data)
-        df.to_csv("colours_produced_with_"+str(n)+"_glassblocks.csv", index=False)
-    #convert orderlist to names so its readable
+    #determine max
+    maxMatch = max(percentageMatchList)
+    maxIndex = percentageMatchList.index(maxMatch)
     
+    bestOrder = OrderList[maxIndex]
+    bestOrder = [rgbToColour[color] for color in bestOrder]
 
-    return bestOrder, maxMatch
+    return bestOrder, maxMatch #returns ["colourName", "colourName", "colourName"], 0.xxxxx
+
 def on_btnCalc_click(n):
     bestOrder, maxMatch = FindGlassBlocks(n)
     DisplayBeaconWithColors(bestOrder)
