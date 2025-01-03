@@ -1,6 +1,3 @@
-import pandas as pd
-import os
-
 colourToRGB = {
     #reference to all the rgb vectors available in mc
     "white" : (249, 255, 254),
