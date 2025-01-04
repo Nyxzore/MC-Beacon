@@ -135,23 +135,34 @@ def FindGlassBlocks(n, RGB_vec):
 rgb = []
 
 import random
-import time
+for n in range(1):
+    for i in range(16589):
+        rgb.append((random.randrange(0, 256), random.randrange(0, 256), random.randrange(0, 256)))
 
-start = time.time()
-for i in range(16589):
-    rgb.append((random.randrange(0, 256), random.randrange(0, 256), random.randrange(0, 256)))
+    #average
+    dist_sum = 0
+    minDistList = []
+    for color in rgb:
+        bestOrder, minDist = FindGlassBlocks(n+1, color)
+        minDistList.append(minDist) # for standard deviation
 
-rgbsum = 0
-First = True
-for color in rgb:
-    bestOrder, minDist = FindGlassBlocks(3, color)
-    rgbsum = rgbsum + minDist
+    import matplotlib.pyplot as plt
 
-end = time.time()
-elapsed_time = end - start
+    x = []
+    for i in range(len(minDistList)):
+        x.append(i)
+    y = minDistList
 
-ave_distance = rgbsum/len(rgb)
-print(ave_distance, elapsed_time)
+    # Create scatter plot
+    plt.scatter(x, y)
+
+    # Add labels and title
+    plt.xlabel('X values')
+    plt.ylabel('Y values')
+    plt.title('Scatter Plot Example')
+
+    # Display the plot
+    plt.show()
 #https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/25/Beacon_JE6_BE2.png/revision/latest?cb=20241106154445
 #https://www.youtube.com/watch?v=GMHtpH68Glo
 #https://minecraft.fandom.com/wiki/Dye#Dyeing_armor

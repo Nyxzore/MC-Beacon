@@ -62,13 +62,11 @@ def getNextPermutation(currentPerm):
                 c[i-1] += 1
     return (c)
 
-def percentage_Match(desired_Color, current_Color):
-    error= []
-    for i in range(3):
-        error.append(abs(current_Color[i] - desired_Color[i]) / 256) # distance off
-    
-    ave_error = sum(error)/3
-    return (1 - ave_error)
+def VectorDistance(desired_Color, current_Color):
+    d = (   (desired_Color[0] - current_Color[0])**2 + 
+            (desired_Color[1] - current_Color[1])**2 + 
+            (desired_Color[2] - current_Color[2])**2)**(1/2)
+    return d
 
 def ComputeAllColoursOfOrder(n):
     initColorOrder = [0,]*n
@@ -87,15 +85,15 @@ def ComputeAllColoursOfOrder(n):
 
 def calcBeamColorAndMatch(OrderList, desired_Color):
     beam_Colors = []
-    percentage_Match_List = []
+    dist_list = []
     for order in OrderList:
         newColor = calculateBeamColor(order)
         beam_Colors.append(newColor)
 
-        p = percentage_Match(desired_Color, newColor)
-        percentage_Match_List.append(p)
+        p = VectorDistance(desired_Color, newColor)
+        dist_list.append(p)
 
-    return beam_Colors, percentage_Match_List
+    return beam_Colors, dist_list
 
 #gui
 import customtkinter as ctk
@@ -154,11 +152,11 @@ def FindGlassBlocks(n):
     desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
     
     OrderList = ComputeAllColoursOfOrder(n)
-    colorList, percentageMatchList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
+    colorList, distList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
 
     #determine max
-    maxMatch = max(percentageMatchList)
-    maxIndex = percentageMatchList.index(maxMatch)
+    maxMatch = min(distList)
+    maxIndex = distList.index(maxMatch)
     
     bestOrder = OrderList[maxIndex]
     bestOrder = [rgbToColour[color] for color in bestOrder]
