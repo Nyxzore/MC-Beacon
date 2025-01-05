@@ -118,51 +118,12 @@ class HexColorToRGB():
             RGBVect[-i] = RGBValue
         return RGBVect
 
-def FindGlassBlocks(n, RGB_vec):
-    desired_rgb_color = RGB_vec
-    
-    OrderList = ComputeAllColoursOfOrder(n)
-    colorList, vector_distance_list = calcBeamColorAndMatch(OrderList, desired_rgb_color)
+n=3
+color = (25,43,23)
+bestOrder, minDist = FindGlassBlocks(n+1, color)
+print(bestOrder, minDist) 
 
-    #determine max
-    maxMatch = min(vector_distance_list)
-    maxIndex = vector_distance_list.index(maxMatch)
-    
-    bestOrder = OrderList[maxIndex]
-    bestOrder = [rgbToColour[color] for color in bestOrder]
-    return bestOrder, maxMatch #returns ["colourName", "colourName", "colourName"], 0.xxxxx
 
-rgb = []
-
-import random
-for n in range(1):
-    for i in range(16589):
-        rgb.append((random.randrange(0, 256), random.randrange(0, 256), random.randrange(0, 256)))
-
-    #average
-    dist_sum = 0
-    minDistList = []
-    for color in rgb:
-        bestOrder, minDist = FindGlassBlocks(n+1, color)
-        minDistList.append(minDist) # for standard deviation
-
-    import matplotlib.pyplot as plt
-
-    x = []
-    for i in range(len(minDistList)):
-        x.append(i)
-    y = minDistList
-
-    # Create scatter plot
-    plt.scatter(x, y)
-
-    # Add labels and title
-    plt.xlabel('X values')
-    plt.ylabel('Y values')
-    plt.title('Scatter Plot Example')
-
-    # Display the plot
-    plt.show()
 #https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/25/Beacon_JE6_BE2.png/revision/latest?cb=20241106154445
 #https://www.youtube.com/watch?v=GMHtpH68Glo
 #https://minecraft.fandom.com/wiki/Dye#Dyeing_armor
