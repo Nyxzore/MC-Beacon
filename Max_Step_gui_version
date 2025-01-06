@@ -47,53 +47,48 @@ def calculateBeamColor(glassBlocks):
     new_Color = multiply_RGB_Vector(summed_Vector, (1/(2**(n-1))))
     return round_RGB_Vector(new_Color)
 
-def IndexToRGB(Indx):
-    RGBList = list(colourToRGB.values())
-    return RGBList[Indx]
-
-def getNextPermutation(currentPerm):
-    start = -len(currentPerm)
-    c = list(currentPerm)
-    c[-1] += 1
-    for i in range(-1,start - 1, -1):
-        if c[i] > 15:
-            c[i]=0
-            if i != start:5
-                c[i-1] += 1
-    return (c)
-
 def VectorDistance(desired_Color, current_Color):
     d = (   (desired_Color[0] - current_Color[0])**2 + 
             (desired_Color[1] - current_Color[1])**2 + 
             (desired_Color[2] - current_Color[2])**2)**(1/2)
     return d
 
-def ComputeAllColoursOfOrder(n):
-    initColorOrder = [0,]*n
-    OrderList = [(initColorOrder)]
-    NewOrder = None
-    while NewOrder != [15,]*n:
-        NewOrder = getNextPermutation(OrderList[-1])
-        OrderList.append(NewOrder)
+class HexColorToRGB():
+    def HextoDecimal(HexCode):
+        HexCode = HexCode.strip("#")
+        hex_Dict = {
+            "0":0,"1":1,"2":2,"3":3,"4":4,
+            "5":5,"6":6,"7":7,"8":8,"9":9,
+            "A":10,"B":11,"C":12,"D":13,"E":14,"F":15,
+            "a":10,"b":11,"c":12,"d":13,"e":14,"f":15,
+        }
+        sum = 0
+        for i in range(-1, -len(HexCode)-1, -1):
+            sum += 16**(abs(i)-1) * hex_Dict[HexCode[i]]
+        return sum
     
-    #converts the list from indexes to RGB
-    for i in range(len(OrderList)):
-        for j in range(len(OrderList[0])):
-            currentIndx = OrderList[i][j]
-            OrderList[i][j] = IndexToRGB(currentIndx)
-    return OrderList
+    def Main(HexColor):
+        #RRGGBB
+        RGBVect = [0,0,0]
+        for i in range(1,4):
+            CurrentElement = HexColor[-2*i] + HexColor[-2*i+1]
+            RGBValue = HexColorToRGB.HextoDecimal(CurrentElement)
+            RGBVect[-i] = RGBValue
+        return RGBVect
 
-def calcBeamColorAndMatch(OrderList, desired_Color):
-    beam_Colors = []
-    dist_list = []
-    for order in OrderList:
-        newColor = calculateBeamColor(order)
-        beam_Colors.append(newColor)
+def get_children(initial_vector, index_in_sum):
+    weighting = 2**(-index_in_sum)
+    children = []
+    available_rgb_vectors = list(colourToRGB.values())
+    for vectors in available_rgb_vectors:
+        children.append(add_RGB_Vectors(multiply_RGB_Vector(vectors, weighting), initial_vector))
+    return children
 
-        p = VectorDistance(desired_Color, newColor)
-        dist_list.append(p)
-
-    return beam_Colors, dist_list
+def get_children_distance(desired_Color, current_options):
+    distance_list = []
+    for colour in current_options:
+        distance_list.append(VectorDistance(desired_Color, colour))
+    return distance_list
 
 #gui
 import customtkinter as ctk
@@ -148,23 +143,28 @@ slider.pack(pady=5)
 slider.set(1)
 
 def FindGlassBlocks(n):
-    desired_color_hex = entPickColor.get()
-    desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
+    desired_hex_color = entPickColor.get()
+    desired_rgb_color = HexColorToRGB.Main(desired_hex_color)
     
-    OrderList = ComputeAllColoursOfOrder(n)
-    colorList, distList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
+    __init__colour = [0,0,0]
+    best_stained_glass_order = []
+    for i in range(n,0,-1):
+        currentOptions = get_children(__init__colour, n)
+        distance_of_current_options = get_children_distance(desired_rgb_color, currentOptions)
+        #choose child with min distance from desired colour
+        min_Distance = min(distance_of_current_options)
+        min_Dist_Index = distance_of_current_options.index(min_Distance)
+        bestOption = currentOptions[min_Dist_Index]
 
-    #determine max
-    maxMatch = min(distList)
-    maxIndex = distList.index(maxMatch)
-    
-    bestOrder = OrderList[maxIndex]
-    bestOrder = [rgbToColour[color] for color in bestOrder]
+        Glass_Block_Names = list(colourToRGB.keys())
+        best_stained_glass = Glass_Block_Names[min_Dist_Index]
+        best_stained_glass_order.append(best_stained_glass)
 
-    return bestOrder, maxMatch #returns ["colourName", "colourName", "colourName"], 0.xxxxx
+        __init__colour = add_RGB_Vectors(__init__colour, bestOption)
+    return best_stained_glass_order
 
 def on_btnCalc_click(n):
-    bestOrder, maxMatch = FindGlassBlocks(n)
+    bestOrder = FindGlassBlocks(n)
     DisplayBeaconWithColors(bestOrder)
 
 btnCalc = ctk.CTkButton(master=root, text="Calculate", command= lambda: on_btnCalc_click(numGlassBlocksWanted))
@@ -239,8 +239,3 @@ def DisplayBeaconWithColors(bestOrder):
         root.canvas.tag_bind(glass_item, "<Leave>", on_leave_glass)
 
 root.mainloop()
-
-#https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/25/Beacon_JE6_BE2.png/revision/latest?cb=20241106154445
-#https://www.youtube.com/watch?v=GMHtpH68Glo
-#https://minecraft.fandom.com/wiki/Dye#Dyeing_armor
-#https://www.checkyourmath.com/convert/color/decimal_rgb.php

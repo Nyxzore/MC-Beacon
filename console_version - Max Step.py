@@ -47,53 +47,11 @@ def calculateBeamColor(glassBlocks):
     new_Color = multiply_RGB_Vector(summed_Vector, (1/(2**(n-1))))
     return round_RGB_Vector(new_Color)
 
-def IndexToRGB(Indx):
-    RGBList = list(colourToRGB.values())
-    return RGBList[Indx]
-
-def getNextPermutation(currentPerm):
-    start = -len(currentPerm)
-    c = list(currentPerm)
-    c[-1] += 1
-    for i in range(-1,start - 1, -1):
-        if c[i] > 15:
-            c[i]=0
-            if i != start:
-                c[i-1] += 1
-    return (c)
-
 def VectorDistance(desired_Color, current_Color):
     d = (   (desired_Color[0] - current_Color[0])**2 + 
             (desired_Color[1] - current_Color[1])**2 + 
             (desired_Color[2] - current_Color[2])**2)**(1/2)
     return d
-
-def ComputeAllColoursOfOrder(n):
-    initColorOrder = [0,]*n
-    OrderList = [(initColorOrder)]
-    NewOrder = None
-    while NewOrder != [15,]*n:
-        NewOrder = getNextPermutation(OrderList[-1])
-        OrderList.append(NewOrder)
-    
-    #converts the list from indexes to RGB
-    for i in range(len(OrderList)):
-        for j in range(len(OrderList[0])):
-            currentIndx = OrderList[i][j]
-            OrderList[i][j] = IndexToRGB(currentIndx)
-    return OrderList
-
-def calcBeamColorAndMatch(OrderList, desired_Color):
-    beam_Colors = []
-    vector_distance_list = []
-    for order in OrderList:
-        newColor = calculateBeamColor(order)
-        beam_Colors.append(newColor)
-
-        d = VectorDistance(desired_Color, newColor)
-        vector_distance_list.append(d)
-
-    return beam_Colors, vector_distance_list
 
 class HexColorToRGB():
     def HextoDecimal(HexCode):
@@ -118,13 +76,51 @@ class HexColorToRGB():
             RGBVect[-i] = RGBValue
         return RGBVect
 
-n=3
+def get_children(initial_vector, index_in_sum, n):
+    if index_in_sum == 0:
+        weighting = 1/(2**n)
+    else:
+        weighting = 2**(index_in_sum-1) / (2**n) 
+
+    children = []
+    Increment = []
+    available_rgb_vectors = list(colourToRGB.values())
+    for vectors in available_rgb_vectors:
+        children.append(add_RGB_Vectors(multiply_RGB_Vector(vectors, weighting), initial_vector))
+
+    return children
+
+def get_children_distance(desired_Color, current_options):
+    distance_list = []
+    for colour in current_options:
+        distance_list.append(VectorDistance(desired_Color, colour))
+    return distance_list
+
+
+def FindGlassBlocks(n):
+    desired_rgb_color = [30, 94, 40]
+    __init__colour = [0,0,0]
+    reversed_best_stained_glass_order = []
+    for i in range(n,-1,-1):
+        currentOptions = get_children(__init__colour, i, n)
+        distance_of_current_options = get_children_distance(desired_rgb_color, currentOptions)
+        #choose child with min distance from desired colour
+        min_Distance = min(distance_of_current_options)
+        min_Dist_Index = distance_of_current_options.index(min_Distance)
+        bestOption = currentOptions[min_Dist_Index]
+
+        Glass_Block_Names = list(colourToRGB.keys())
+        best_stained_glass = Glass_Block_Names[min_Dist_Index]
+        reversed_best_stained_glass_order.append(best_stained_glass)
+
+        __init__colour = bestOption
+
+        #reverse list
+        print(min_Distance)
+        best_stained_glass_order = list(reversed(reversed_best_stained_glass_order))
+    return best_stained_glass_order
+
+n=4 #n=number of glass blocks
 color = (25,43,23)
-bestOrder, minDist = FindGlassBlocks(n+1, color)
-print(bestOrder, minDist) 
-
-
-#https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/25/Beacon_JE6_BE2.png/revision/latest?cb=20241106154445
-#https://www.youtube.com/watch?v=GMHtpH68Glo
-#https://minecraft.fandom.com/wiki/Dye#Dyeing_armor
-#https://www.checkyourmath.com/convert/color/decimal_rgb.php
+best_stained_glass_order = FindGlassBlocks(n-1)
+print(best_stained_glass_order)
