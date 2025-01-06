@@ -82,8 +82,8 @@ def get_children(initial_vector, index_in_sum, n):
     else:
         weighting = 2**(index_in_sum-1) / (2**n) 
 
+    print(weighting)
     children = []
-    Increment = []
     available_rgb_vectors = list(colourToRGB.values())
     for vectors in available_rgb_vectors:
         children.append(add_RGB_Vectors(multiply_RGB_Vector(vectors, weighting), initial_vector))
@@ -98,7 +98,7 @@ def get_children_distance(desired_Color, current_options):
 
 
 def FindGlassBlocks(n):
-    desired_rgb_color = [30, 94, 40]
+    desired_rgb_color = [58,89,54]
     __init__colour = [0,0,0]
     reversed_best_stained_glass_order = []
     for i in range(n,-1,-1):
@@ -114,13 +114,9 @@ def FindGlassBlocks(n):
         reversed_best_stained_glass_order.append(best_stained_glass)
 
         __init__colour = bestOption
-
         #reverse list
-        print(min_Distance)
-        best_stained_glass_order = list(reversed(reversed_best_stained_glass_order))
-    return best_stained_glass_order
+    return list(reversed(reversed_best_stained_glass_order))
 
-n=4 #n=number of glass blocks
-color = (25,43,23)
-best_stained_glass_order = FindGlassBlocks(n-1)
+n = 4 #n=number of glass blocks -1
+best_stained_glass_order = FindGlassBlocks(n)
 print(best_stained_glass_order)
