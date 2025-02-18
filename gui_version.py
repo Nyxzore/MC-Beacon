@@ -58,7 +58,7 @@ def getNextPermutation(currentPerm):
     for i in range(-1,start - 1, -1):
         if c[i] > 15:
             c[i]=0
-            if i != start:5
+            if i != start:
                 c[i-1] += 1
     return (c)
 
@@ -147,24 +147,23 @@ slider = ctk.CTkSlider(root, from_=1, to=10, command=on_slide)
 slider.pack(pady=5)
 slider.set(1)
 
-def FindGlassBlocks(n):
-    desired_color_hex = entPickColor.get()
-    desired_rgb_color = HexColorToRGB.Main(desired_color_hex)
+def FindGlassBlocks(n, hex_colour):
+    desired_rgb_color = HexColorToRGB.Main(hex_colour)
     
     OrderList = ComputeAllColoursOfOrder(n)
-    colorList, distList = calcBeamColorAndMatch(OrderList, desired_rgb_color)
+    colorList, vector_distance_list = calcBeamColorAndMatch(OrderList, desired_rgb_color)
 
     #determine max
-    maxMatch = min(distList)
-    maxIndex = distList.index(maxMatch)
+    maxMatch = min(vector_distance_list)
+    maxIndex = vector_distance_list.index(maxMatch)
     
     bestOrder = OrderList[maxIndex]
     bestOrder = [rgbToColour[color] for color in bestOrder]
-
     return bestOrder, maxMatch #returns ["colourName", "colourName", "colourName"], 0.xxxxx
 
 def on_btnCalc_click(n):
-    bestOrder, maxMatch = FindGlassBlocks(n)
+    hex_colour = entPickColor.get()
+    bestOrder, maxMatch = FindGlassBlocks(n, hex_colour)
     DisplayBeaconWithColors(bestOrder)
 
 btnCalc = ctk.CTkButton(master=root, text="Calculate", command= lambda: on_btnCalc_click(numGlassBlocksWanted))

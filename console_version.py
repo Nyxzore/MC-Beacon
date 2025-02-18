@@ -132,7 +132,7 @@ def FindGlassBlocks(n, RGB_vec):
     bestOrder = [rgbToColour[color] for color in bestOrder]
     return bestOrder, maxMatch #returns ["colourName", "colourName", "colourName"], 0.xxxxx
 
-bestorder, maxmatch = FindGlassBlocks(3, [30, 94, 40])
+bestorder, maxmatch = FindGlassBlocks(3, [111, 153, 83])
 print(maxmatch, bestorder)
 #https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/25/Beacon_JE6_BE2.png/revision/latest?cb=20241106154445
 #https://www.youtube.com/watch?v=GMHtpH68Glo
