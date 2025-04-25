@@ -1,4 +1,4 @@
-import RGB_Vec_Handling as RGB
+import Algorithms.RGB_Vec_Handling as RGB
 colourToRGB = {
     #reference to all the rgb vectors available in mc
     "white" : (249, 255, 254),

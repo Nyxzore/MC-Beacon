@@ -128,9 +128,9 @@ def calculate_ave_distance_NSA(inside_hull):
 #calculate_ave_distance_GA(inside_hull=False)
 #calculate_ave_distance_GA(None)
 
-calculate_ave_distance_NSA(inside_hull=True) 
-calculate_ave_distance_NSA(inside_hull=False)
-calculate_ave_distance_NSA(None)
+#calculate_ave_distance_NSA(inside_hull=True) 
+#calculate_ave_distance_NSA(inside_hull=False)
+#calculate_ave_distance_NSA(None)
 
 
 def percentage_in_hull():
@@ -189,6 +189,30 @@ def percentage_in_hull():
         plt.show()
     plot()
     print(inhull, outhull, sample_size) #5043528 11733688 16777216
+
+
+def rim_of_hull():
+    with open("output.txt", "w") as f:
+        f.write("R,G,B\n") 
+
+    for R in range(256):
+        print(R/256 * 100)
+        for G in range(256):
+            for B in range(256):
+                if ih.in_hull((R,B,G)):
+                    neighbours_in_hull = 0
+                    for dr in [-1, 0, 1]:
+                        for dg in [-1, 0, 1]:
+                            for db in [-1, 0, 1]:
+                                if dr == 0 and dg == 0 and db == 0:
+                                    continue  # Skip the center point (R, G, B) itself
+                                if ih.in_hull((R + dr, G + dg, B + db)):
+                                    neighbours_in_hull += 1
+
+                        if neighbours_in_hull != 0 and neighbours_in_hull != 26:
+                            with open("output.txt", "a") as f:
+                                f.write(f"{R},{G},{B}\n")
+rim_of_hull()
 
 def avg_dist_outside_hull():
     distances= []
