@@ -1,5 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/home/nyxzore/Desktop/mc_beacon_optimisation/Description/media/videos/search space/1080p60/partial_movie_files/ConvexHullExample/3209967817_612395451_2901267753.mp4'
-file 'file:/home/nyxzore/Desktop/mc_beacon_optimisation/Description/media/videos/search space/1080p60/partial_movie_files/ConvexHullExample/243399904_1840043472_3133198245.mp4'
-file 'file:/home/nyxzore/Desktop/mc_beacon_optimisation/Description/media/videos/search space/1080p60/partial_movie_files/ConvexHullExample/243399904_4282420656_2817773114.mp4'
-file 'file:/home/nyxzore/Desktop/mc_beacon_optimisation/Description/media/videos/search space/1080p60/partial_movie_files/ConvexHullExample/3438823254_1687483585_1192503307.mp4'
